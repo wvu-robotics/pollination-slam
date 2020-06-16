@@ -1,0 +1,105 @@
+lego_loam:
+    pointCloudTopic: "/velodyne_points"
+    # imuTopic: "/imu/data"
+    imuTopic: "/imu/data_updated"
+
+    fileDirectory: "/tmp/"
+
+    # global frame for loam
+    mapFrameId: "/map"
+    # the lidar frame without transform to robot center
+    lidarFrameId: "/velodyne"
+    # the lidar frame after transforming to robot center
+    lidarFrameIdTrans: "/base_link"
+    # # VLP-16
+    # laser:
+    #     N_SCAN: 16
+    #     Horizon_SCAN: 1800
+    #     ground_scan_index: 7
+    #     vertical_angle_bottom: -15          # degrees
+    #     vertical_angle_top: 15              # degrees
+    #     sensor_mount_angle: 0               # degrees
+    #     scan_period: 0.1                    # seconds
+
+    # HDL-32E
+    laser:
+        N_SCAN: 32
+        Horizon_SCAN: 1800
+        ang_top: 10.66                      # degrees
+        ang_bottom: 30.67                   # degrees
+        groundScanInd: 20
+        sensorMountAngle: 0.0               # degrees
+        scanPeriod: 0.1                    # seconds
+
+    imu:
+        imuQueLength: 200
+
+    pointFilter:  # robot box size (center is velodyne)
+        # robotForwardX: 1.2
+        # robotBackwardX: -0.5
+        # robotRightY: -0.5
+        # robotLeftY: 0.5
+        # robotUpZ: 0.5
+        # robotDownZ: -1.5
+        removeRobotPoints: false
+        robotForwardX: 0.1
+        robotBackwardX: -0.1
+        robotRightY: -0.1
+        robotLeftY: 0.1
+        robotUpZ: 0.1
+        robotDownZ: -0.1
+
+     # L^T_R is the robot pose w.r.t. lidar frame
+     # Note that, if doing active transform to figure out the euler angles,
+     # the value need to be multiplied with -1 for cuculated rotation matrix.
+     # rotate seq: YZX (yaw pitch raw)
+    pointTransform:
+        transformToRobotCenter: true
+        # base_link in lidar frame
+        RToLRoll: 0.0
+        RToLPitch: 0.0
+        RToLYaw: 0.0
+        TRToLX: 0.3962  # 0.315 + 0.0812
+        TRToLY: 0.0
+        TRToLZ: -0.873  # -0.628 - 0.245
+        # lidar initial in map frame
+        LiToMRoll: 0.0
+        LiToMPitch: 0.0
+        LiToMYaw: 0.0
+        TLiToMX: -0.3962  # -0.315 - 0.0812
+        TLiToMY: 0.0
+        TLiToMZ: 0.873  # 0.628 + 0.245
+
+    imageProjection:
+        segmentValidPointNum: 5
+        segmentValidLineNum: 3
+        segmentTheta: 60.0                      # (degrees) decrese this value may improve accuracy
+
+    featureAssociation:
+        edgeThreshold: 0.1
+        surfThreshold: 0.1
+        nearestFeatureSearchDist: 5
+
+    mapping:
+        loopClosureEnableFlag: false
+        mappingProcessInterval: 0.3
+        # mapping_frequency_divider: 5
+
+        surroundingKeyframeSearchRadius: 50.0   # key frame that is within n meters from current pose will be
+                                                   # considered for scan-to-map optimization (when loop closure disabled)
+        surroundingKeyframeSearchNum: 50        # submap size (when loop closure enabled)
+
+        historyKeyframeSearchRadius: 7.0        # key frame that is within n meters from current pose will be considerd for loop closure
+        historyKeyframeSearchNum: 25            # 2n+1 number of history key frames will be fused into a submap for loop closure
+        historyKeyframeFitnessScore: 0.3        # the smaller the better alignment
+
+        globalMapVisualizationSearchRadius: 500.0 # key frames with in n meters will be visualized
+
+fusion:
+    frames:
+        frameId: map
+        childFrameId: base_link
+
+    topic:
+        laserOdom: /aft_mapped_to_init
+        odometry: /husky_velocity_controller/odom

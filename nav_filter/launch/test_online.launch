@@ -1,0 +1,35 @@
+<launch>
+  <!-- True for simulation, false for real-time and bagfiles -->
+  <param name="/use_sim_time" value="false"/>
+
+  <group ns="nav_filter">
+    <!-- SLAM -->
+    <node pkg="nav_filter"
+          name="nav_filter"
+          type="nav_filter_node"
+          output="screen">
+
+
+      <!-- Initial pose -->
+      <rosparam param="init">
+        position: {x: 0.0, y: 0.0, z: 0.0}
+        velocity: {vx: 0.0, vy: 0.0, vz: 0.0}
+        orientation: {qx: 0.0, qy: 0.0, qz: 0.0, qw: 1.0}
+        position_sigma: {x: 1.0, y: 1.0, z: 1.0}
+        velocity_sigma: {vx: 0.1, vy: 0.1, vz: 0.1}
+        orientation_sigma: {roll: 0.02, pitch: 0.02, yaw: 0.02}
+      </rosparam>
+
+      <!-- Rates -->
+      <rosparam file="$(find nav_filter)/config/parameters.yaml"/>
+
+    </node>
+  </group>
+    <!-- launch slam -->
+    <!-- <include file="$(find blam_example)/launch/test_online.launch"/> -->
+    <!-- <include file="$(find loam_velodyne)/launch/loam_velodyne.launch"/> -->
+    <!-- launch gicp to provide rotation between maps -->
+    <include file="$(find gicp_localization)/launch/test_online.launch"/>
+    <!-- <include file="/opt/ros/kinetic/share/octomap_server/launch/octomap_mapping.launch"/> -->
+    <include file="$(find nav_filter)/launch/octomap_mapping_temp.launch"/>
+</launch>
