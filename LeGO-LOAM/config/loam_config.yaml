@@ -41,7 +41,7 @@ lego_loam:
         # robotLeftY: 0.5
         # robotUpZ: 0.5
         # robotDownZ: -1.5
-        removeRobotPoints: false
+        removeRobotPoints: true
         robotForwardX: 0.1
         robotBackwardX: -0.1
         robotRightY: -0.1
@@ -54,7 +54,7 @@ lego_loam:
      # the value need to be multiplied with -1 for cuculated rotation matrix.
      # rotate seq: YZX (yaw pitch raw)
     pointTransform:
-        transformToRobotCenter: true
+        transformToRobotCenter: false
         # base_link in lidar frame
         RToLRoll: 0.0
         RToLPitch: 0.0

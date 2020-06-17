@@ -20,9 +20,7 @@ odo:
 
 slam:
   # topic: /blam/blam_slam/localization_integrated_estimate
-  topic: /integrated_to_init
-  # topic: /aft_mapped_to_init
-
+  topic: /aft_mapped_to_init_high_frec
 
 gicp_tran:
   topic: /gicp_localization/gicp_localization/initial_offset

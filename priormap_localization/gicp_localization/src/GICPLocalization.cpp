@@ -106,17 +106,17 @@ void GICPLocalization::PointCloudCallback(const PointCloud& SLAMMap){
 bool GICPLocalization::UpdateInitialOffset(const PointCloud& SLAMMap){
 
         // If this is the first point cloud, load prior map and slam map.
-        if(!initialized_) {
-                // Load prior map
-                if(pcl::io::loadPCDFile<PointXYZ> (prior_map_path_, *priormap_) == -1)
-                {
-                        ROS_ERROR("%s: Failed to load prior map.", name_.c_str());
-                        return false;
-                }
-        }
-
-        // Move incoming slam map into slammap_ point cloud container
-        copyPointCloud(SLAMMap, *slammap_);
+        // if(!initialized_) {
+        //         // Load prior map
+        //         if(pcl::io::loadPCDFile<PointXYZ> (prior_map_path_, *priormap_) == -1)
+        //         {
+        //                 ROS_ERROR("%s: Failed to load prior map.", name_.c_str());
+        //                 return false;
+        //         }
+        // }
+        //
+        // // Move incoming slam map into slammap_ point cloud container
+        // copyPointCloud(SLAMMap, *slammap_);
 
 
         // Update initial offset via GICP.
@@ -125,19 +125,19 @@ bool GICPLocalization::UpdateInitialOffset(const PointCloud& SLAMMap){
 
 bool GICPLocalization::UpdateGICP(){
         // Compute the transformation between prior map and slam map.
-        GeneralizedIterativeClosestPoint<PointXYZ, PointXYZ> gicp;
-        gicp.setTransformationEpsilon(params_.icp_tf_epsilon);
-        gicp.setMaxCorrespondenceDistance(params_.icp_corr_dist);
-        gicp.setMaximumIterations(params_.icp_iterations);
-        gicp.setRANSACIterations(0);
-
-        gicp.setInputSource(slammap_);
-        gicp.setInputTarget(priormap_);
-
-        PointCloud unused_result;
-        // gicp.align(unused_result);
-
-        const Eigen::Matrix4f T = gicp.getFinalTransformation();
+        // GeneralizedIterativeClosestPoint<PointXYZ, PointXYZ> gicp;
+        // gicp.setTransformationEpsilon(params_.icp_tf_epsilon);
+        // gicp.setMaxCorrespondenceDistance(params_.icp_corr_dist);
+        // gicp.setMaximumIterations(params_.icp_iterations);
+        // gicp.setRANSACIterations(0);
+        //
+        // gicp.setInputSource(slammap_);
+        // gicp.setInputTarget(priormap_);
+        //
+        // PointCloud unused_result;
+        // // gicp.align(unused_result);
+        //
+        // const Eigen::Matrix4f T = gicp.getFinalTransformation();
 
         // Update initial offset
         // initial_offset_estimate_.translation = gu::Vec3(T(0,3), T(1,3), T(2,3));
@@ -149,7 +149,7 @@ bool GICPLocalization::UpdateGICP(){
         initial_offset_estimate_.rotation = gu::Rot3(1, 0, 0,
                                                      0, 1, 0,
                                                      0, 0, 1);
-        
+
         // Convert intial pose estimate to ROS format and publish.
         PublishInitialOffset(initial_offset_estimate_, initial_offset_pub_);
 
@@ -184,7 +184,7 @@ void GICPLocalization::PublishInitialOffset(const gu::Transform3& pose,
 
         odo_trans_ = odo_trans;
 
-        
+
 
 }
 

@@ -400,8 +400,8 @@ gtsam::NavState NavFilter::OdoToGtsam(const OdoData& odo_data_)
 void NavFilter::PublishStates(const gtsam::NavState& states,
                               const ros::Publisher& pub){
         // // Check for subscribers before doing any work.
-        // if(pub.getNumSubscribers() == 0)
-        //         return;
+        if(pub.getNumSubscribers() == 0)
+                return;
 
         Vector3 position = states.pose().translation();
         Vector4 attitude = states.pose().rotation().quaternion();
@@ -436,7 +436,6 @@ void NavFilter::PublishStates(const gtsam::NavState& states,
         odo_trans.transform.rotation.x = attitude[1];
         odo_trans.transform.rotation.y = attitude[2];
         odo_trans.transform.rotation.z = attitude[3];
-
         states_tf_broad.sendTransform(odo_trans);
 }
 
