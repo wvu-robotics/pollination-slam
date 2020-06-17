@@ -1,6 +1,6 @@
 // This is an advanced implementation of the algorithm described in the following paper:
 //   J. Zhang and S. Singh. LOAM: Lidar Odometry and Mapping in Real-time.
-//     Robotics: Science and Systems Conference (RSS). Berkeley, CA, July 2014. 
+//     Robotics: Science and Systems Conference (RSS). Berkeley, CA, July 2014.
 
 // Modifier: Tong Qin               qintonguav@gmail.com
 // 	         Shaozu Cao 		    saozu.cao@connect.ust.hk
@@ -510,8 +510,8 @@ int main(int argc, char **argv)
             // publish odometry
             nav_msgs::Odometry laserOdometry;
             // laserOdometry.header.frame_id = "/camera_init";
-            laserOdometry.header.frame_id = "/map";
             // laserOdometry.child_frame_id = "/laser_odom";
+            laserOdometry.header.frame_id = "/map";
             laserOdometry.child_frame_id = "/base_link";
             laserOdometry.header.stamp = ros::Time().fromSec(timeSurfPointsLessFlat);
             laserOdometry.pose.pose.orientation.x = q_w_curr.x();
@@ -577,22 +577,19 @@ int main(int argc, char **argv)
                 sensor_msgs::PointCloud2 laserCloudCornerLast2;
                 pcl::toROSMsg(*laserCloudCornerLast, laserCloudCornerLast2);
                 laserCloudCornerLast2.header.stamp = ros::Time().fromSec(timeSurfPointsLessFlat);
-                // laserCloudCornerLast2.header.frame_id = "/camera";
-                laserCloudCornerLast2.header.frame_id = "/velodyne";
+                laserCloudCornerLast2.header.frame_id = "/camera";
                 pubLaserCloudCornerLast.publish(laserCloudCornerLast2);
 
                 sensor_msgs::PointCloud2 laserCloudSurfLast2;
                 pcl::toROSMsg(*laserCloudSurfLast, laserCloudSurfLast2);
                 laserCloudSurfLast2.header.stamp = ros::Time().fromSec(timeSurfPointsLessFlat);
-                // laserCloudSurfLast2.header.frame_id = "/camera";
-                laserCloudSurfLast2.header.frame_id = "/velodyne";
+                laserCloudSurfLast2.header.frame_id = "/camera";
                 pubLaserCloudSurfLast.publish(laserCloudSurfLast2);
 
                 sensor_msgs::PointCloud2 laserCloudFullRes3;
                 pcl::toROSMsg(*laserCloudFullRes, laserCloudFullRes3);
                 laserCloudFullRes3.header.stamp = ros::Time().fromSec(timeSurfPointsLessFlat);
-                // laserCloudFullRes3.header.frame_id = "/camera";
-                laserCloudFullRes3.header.frame_id = "/velodyne";
+                laserCloudFullRes3.header.frame_id = "/camera";
                 pubLaserCloudFullRes.publish(laserCloudFullRes3);
             }
             printf("publication time %f ms \n", t_pub.toc());
