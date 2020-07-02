@@ -85,6 +85,16 @@ const int laserCloudNum = laserCloudWidth * laserCloudHeight * laserCloudDepth; 
 int laserCloudValidInd[125];
 int laserCloudSurroundInd[125];
 
+// transform to robot center param.
+bool do_transform_to_center = true;
+float r_w = 1.0;
+float r_x = 0.0;
+float r_y = 0.0;
+float r_z = 0.0;
+float t_x = -0.3962;
+float t_y = 0.0;
+float t_z = 0.873;
+
 // input: from odom
 pcl::PointCloud<PointType>::Ptr laserCloudCornerLast(new pcl::PointCloud<PointType>());
 pcl::PointCloud<PointType>::Ptr laserCloudSurfLast(new pcl::PointCloud<PointType>());
@@ -119,6 +129,9 @@ Eigen::Vector3d t_wmap_wodom(0, 0, 0);
 Eigen::Quaterniond q_wodom_curr(1, 0, 0, 0);
 Eigen::Vector3d t_wodom_curr(0, 0, 0);
 
+// transformation between lidar's frame and center of rover.
+Eigen::Quaterniond q_curr_lidar(r_w, r_x, r_y, r_z);
+Eigen::Vector3d t_curr_lidar(t_x, t_y, t_z);
 
 std::queue<sensor_msgs::PointCloud2ConstPtr> cornerLastBuf;
 std::queue<sensor_msgs::PointCloud2ConstPtr> surfLastBuf;
@@ -211,8 +224,19 @@ void laserOdometryHandler(const nav_msgs::Odometry::ConstPtr &laserOdometry)
 	t_wodom_curr.y() = laserOdometry->pose.pose.position.y;
 	t_wodom_curr.z() = laserOdometry->pose.pose.position.z;
 
-	Eigen::Quaterniond q_w_curr = q_wmap_wodom * q_wodom_curr;
-	Eigen::Vector3d t_w_curr = q_wmap_wodom * t_wodom_curr + t_wmap_wodom;
+	Eigen::Quaterniond q_w_curr(1.0, 0.0, 0.0, 0.0);
+	Eigen::Vector3d t_w_curr(0.0, 0.0, 0.0);
+	if(do_transform_to_center){
+		// transformation between lidar's frame and odom's world frame.
+		Eigen::Quaterniond q_wodom_lidar = q_wodom_curr * q_curr_lidar;
+		Eigen::Vector3d t_wodom_lidar = q_wodom_curr * t_curr_lidar + t_wodom_curr;
+
+		q_w_curr = q_wmap_wodom * q_wodom_lidar;
+		t_w_curr = q_wmap_wodom * t_wodom_lidar + t_wmap_wodom;
+	}else{
+		q_w_curr = q_wmap_wodom * q_wodom_curr;
+		t_w_curr = q_wmap_wodom * t_wodom_curr + t_wmap_wodom;
+	}
 
 	nav_msgs::Odometry odomAftMapped;
 	// odomAftMapped.header.frame_id = "/camera_init";
@@ -552,15 +576,15 @@ void process()
 			downSizeFilterSurf.filter(*laserCloudSurfStack);
 			int laserCloudSurfStackNum = laserCloudSurfStack->points.size();
 
-			printf("map prepare time %f ms\n", t_shift.toc());
-			printf("map corner num %d  surf num %d \n", laserCloudCornerFromMapNum, laserCloudSurfFromMapNum);
+			// printf("map prepare time %f ms\n", t_shift.toc());
+			// printf("map corner num %d  surf num %d \n", laserCloudCornerFromMapNum, laserCloudSurfFromMapNum);
 			if (laserCloudCornerFromMapNum > 10 && laserCloudSurfFromMapNum > 50)
 			{
 				TicToc t_opt;
 				TicToc t_tree;
 				kdtreeCornerFromMap->setInputCloud(laserCloudCornerFromMap);
 				kdtreeSurfFromMap->setInputCloud(laserCloudSurfFromMap);
-				printf("build tree time %f ms \n", t_tree.toc());
+				// printf("build tree time %f ms \n", t_tree.toc());
 
 				for (int iterCount = 0; iterCount < 2; iterCount++)
 				{
@@ -710,7 +734,7 @@ void process()
 					//printf("corner num %d used corner num %d \n", laserCloudCornerStackNum, corner_num);
 					//printf("surf num %d used surf num %d \n", laserCloudSurfStackNum, surf_num);
 
-					printf("mapping data assosiation time %f ms \n", t_data.toc());
+					// printf("mapping data assosiation time %f ms \n", t_data.toc());
 
 					TicToc t_solver;
 					ceres::Solver::Options options;
@@ -721,14 +745,14 @@ void process()
 					options.gradient_check_relative_precision = 1e-4;
 					ceres::Solver::Summary summary;
 					ceres::Solve(options, &problem, &summary);
-					printf("mapping solver time %f ms \n", t_solver.toc());
+					// printf("mapping solver time %f ms \n", t_solver.toc());
 
 					//printf("time %f \n", timeLaserOdometry);
 					//printf("corner factor num %d surf factor num %d\n", corner_num, surf_num);
 					//printf("result q %f %f %f %f result t %f %f %f\n", parameters[3], parameters[0], parameters[1], parameters[2],
 					//	   parameters[4], parameters[5], parameters[6]);
 				}
-				printf("mapping optimization time %f \n", t_opt.toc());
+				// printf("mapping optimization time %f \n", t_opt.toc());
 			}
 			else
 			{
@@ -784,7 +808,7 @@ void process()
 					laserCloudSurfArray[cubeInd]->push_back(pointSel);
 				}
 			}
-			printf("add points time %f ms\n", t_add.toc());
+			// printf("add points time %f ms\n", t_add.toc());
 
 
 			TicToc t_filter;
@@ -802,7 +826,7 @@ void process()
 				downSizeFilterSurf.filter(*tmpSurf);
 				laserCloudSurfArray[ind] = tmpSurf;
 			}
-			printf("filter time %f ms \n", t_filter.toc());
+			// printf("filter time %f ms \n", t_filter.toc());
 
 			TicToc t_pub;
 			//publish surround map for every 5 frame
@@ -853,9 +877,9 @@ void process()
 			laserCloudFullRes3.header.frame_id = "/map";
 			pubLaserCloudFullRes.publish(laserCloudFullRes3);
 
-			printf("mapping pub time %f ms \n", t_pub.toc());
+			// printf("mapping pub time %f ms \n", t_pub.toc());
 
-			printf("whole mapping time %f ms +++++\n", t_whole.toc());
+			// printf("whole mapping time %f ms +++++\n", t_whole.toc());
 
 			nav_msgs::Odometry odomAftMapped;
 			// odomAftMapped.header.frame_id = "/camera_init";
@@ -913,7 +937,17 @@ int main(int argc, char **argv)
 	float planeRes = 0;
 	nh.param<float>("mapping_line_resolution", lineRes, 0.4);
 	nh.param<float>("mapping_plane_resolution", planeRes, 0.8);
-	printf("line resolution %f plane resolution %f \n", lineRes, planeRes);
+	// printf("line resolution %f plane resolution %f \n", lineRes, planeRes);
+
+	nh.param<bool>("do_transform_to_center", do_transform_to_center, true);
+	nh.param<float>("r_w", r_w, 1.0);
+	nh.param<float>("r_x", r_x, 0.0);
+	nh.param<float>("r_y", r_y, 0.0);
+	nh.param<float>("r_z", r_z, 0.0);
+	nh.param<float>("t_x", t_x, -0.3962);
+	nh.param<float>("t_y", t_y, 0.0);
+	nh.param<float>("t_z", t_z, 0.873);
+
 	downSizeFilterCorner.setLeafSize(lineRes, lineRes,lineRes);
 	downSizeFilterSurf.setLeafSize(planeRes, planeRes, planeRes);
 

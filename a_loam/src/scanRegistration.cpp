@@ -68,6 +68,14 @@ int cloudSortInd[400000];
 int cloudNeighborPicked[400000];
 int cloudLabel[400000];
 
+bool doRemoveRobotPoints=true;
+double robotBackwardX=-0.5;
+double robotForwardX=1.2;
+double robotRightY=-0.5;
+double robotLeftY=0.5;
+double robotDownZ=-1.5;
+double robotUpZ=0.5;
+
 bool comp (int i,int j) { return (cloudCurvature[i]<cloudCurvature[j]); }
 
 ros::Publisher pubLaserCloud;
@@ -111,6 +119,49 @@ void removeClosedPointCloud(const pcl::PointCloud<PointT> &cloud_in,
     cloud_out.is_dense = true;
 }
 
+template <typename PointType>
+void removeRobotPoints(const pcl::PointCloud<PointType> &cloud_in,
+                              pcl::PointCloud<PointType> &cloud_out
+                      // double robotBackwardX,
+                      // double robotForwardX
+                      // double robotRightY
+                      // double robotLeftY
+                      // double robotDownZ
+                      // double robotUpZ
+                    ){
+    if(!doRemoveRobotPoints) return;
+
+    if (&cloud_in != &cloud_out)
+    {
+        cloud_out.header = cloud_in.header;
+        cloud_out.points.resize(cloud_in.points.size());
+    }
+
+    size_t j = 0;
+
+    for (size_t i = 0; i < cloud_in.points.size(); ++i)
+    {
+        if (cloud_in.points[i].x < robotForwardX &&
+            cloud_in.points[i].x > robotBackwardX &&
+            cloud_in.points[i].y < robotLeftY &&
+            cloud_in.points[i].y > robotRightY &&
+            cloud_in.points[i].z < robotUpZ &&
+            cloud_in.points[i].z < robotDownZ)
+            continue;
+        cloud_out.points[j] = cloud_in.points[i];
+        j++;
+    }
+    if (j != cloud_in.points.size())
+    {
+        cloud_out.points.resize(j);
+    }
+
+    cloud_out.height = 1;
+    cloud_out.width = static_cast<uint32_t>(j);
+    cloud_out.is_dense = true;
+
+}
+
 void laserCloudHandler(const sensor_msgs::PointCloud2ConstPtr &laserCloudMsg)
 {
     if (!systemInited)
@@ -134,8 +185,9 @@ void laserCloudHandler(const sensor_msgs::PointCloud2ConstPtr &laserCloudMsg)
     std::vector<int> indices;
 
     pcl::removeNaNFromPointCloud(laserCloudIn, laserCloudIn, indices);
-    removeClosedPointCloud(laserCloudIn, laserCloudIn, MINIMUM_RANGE);
-
+    // removeClosedPointCloud(laserCloudIn, laserCloudIn, MINIMUM_RANGE);
+    // pcl::PointCloud<pcl::PointXYZ> laserCloudFiltered;
+    removeRobotPoints(laserCloudIn, laserCloudIn);
 
     int cloudSize = laserCloudIn.points.size();
     float startOri = -atan2(laserCloudIn.points[0].y, laserCloudIn.points[0].x);
@@ -241,7 +293,7 @@ void laserCloudHandler(const sensor_msgs::PointCloud2ConstPtr &laserCloudMsg)
     }
 
     cloudSize = count;
-    printf("points size %d \n", cloudSize);
+    // printf("points size %d \n", cloudSize);
 
     pcl::PointCloud<PointType>::Ptr laserCloud(new pcl::PointCloud<PointType>());
     for (int i = 0; i < N_SCANS; i++)
@@ -251,7 +303,7 @@ void laserCloudHandler(const sensor_msgs::PointCloud2ConstPtr &laserCloudMsg)
         scanEndInd[i] = laserCloud->size() - 6;
     }
 
-    printf("prepare time %f \n", t_prepare.toc());
+    // printf("prepare time %f \n", t_prepare.toc());
 
     for (int i = 5; i < cloudSize - 5; i++)
     {
@@ -406,8 +458,8 @@ void laserCloudHandler(const sensor_msgs::PointCloud2ConstPtr &laserCloudMsg)
 
         surfPointsLessFlat += surfPointsLessFlatScanDS;
     }
-    printf("sort q time %f \n", t_q_sort);
-    printf("seperate points time %f \n", t_pts.toc());
+    // printf("sort q time %f \n", t_q_sort);
+    // printf("seperate points time %f \n", t_pts.toc());
 
 
     sensor_msgs::PointCloud2 laserCloudOutMsg;
@@ -416,6 +468,13 @@ void laserCloudHandler(const sensor_msgs::PointCloud2ConstPtr &laserCloudMsg)
     // laserCloudOutMsg.header.frame_id = "/camera_init";
     laserCloudOutMsg.header.frame_id = "/map";
     pubLaserCloud.publish(laserCloudOutMsg);
+
+    sensor_msgs::PointCloud2 laserCloudFilteredMsg;
+    pcl::toROSMsg(laserCloudIn, laserCloudFilteredMsg);
+    laserCloudFilteredMsg.header.stamp = laserCloudMsg->header.stamp;
+    // laserCloudFilteredMsg.header.frame_id = "/camera_init";
+    laserCloudFilteredMsg.header.frame_id = "/map";
+    pubRemovePoints.publish(laserCloudFilteredMsg);
 
     sensor_msgs::PointCloud2 cornerPointsSharpMsg;
     pcl::toROSMsg(cornerPointsSharp, cornerPointsSharpMsg);
@@ -458,7 +517,7 @@ void laserCloudHandler(const sensor_msgs::PointCloud2ConstPtr &laserCloudMsg)
         }
     }
 
-    printf("scan registration time %f ms *************\n", t_whole.toc());
+    // printf("scan registration time %f ms *************\n", t_whole.toc());
     if(t_whole.toc() > 100)
         ROS_WARN("scan registration process over 100ms");
 }
@@ -472,7 +531,15 @@ int main(int argc, char **argv)
 
     nh.param<double>("minimum_range", MINIMUM_RANGE, 0.1);
 
-    printf("scan line number %d \n", N_SCANS);
+    nh.param<bool>("do_remove_robot_points", doRemoveRobotPoints, true);
+    nh.param<double>("robot_backward_x", robotBackwardX, -0.5);
+    nh.param<double>("robot_forward_x", robotForwardX, 1.2);
+    nh.param<double>("robot_right_y", robotRightY, -0.5);
+    nh.param<double>("robot_left_y", robotLeftY, 0.5);
+    nh.param<double>("robot_down_z", robotDownZ, -1.5);
+    nh.param<double>("robot_up_z", robotUpZ, 0.5);
+
+    // printf("scan line number %d \n", N_SCANS);
 
     if(N_SCANS != 16 && N_SCANS != 32 && N_SCANS != 64)
     {
@@ -492,7 +559,7 @@ int main(int argc, char **argv)
 
     pubSurfPointsLessFlat = nh.advertise<sensor_msgs::PointCloud2>("/laser_cloud_less_flat", 100);
 
-    pubRemovePoints = nh.advertise<sensor_msgs::PointCloud2>("/laser_remove_points", 100);
+    pubRemovePoints = nh.advertise<sensor_msgs::PointCloud2>("/point_cloud_filtered", 100);
 
     if(PUB_EACH_LINE)
     {

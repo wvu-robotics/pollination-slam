@@ -16,7 +16,7 @@ int main(int argc, char** argv){
 
 	while(ros::ok()){
 		transformed_states_tf_broad.sendTransform(gicplocalization.GetTf());
-        std::cout<<"published tf!"<<std::endl;
+        // std::cout<<"published tf!"<<std::endl;
 		r.sleep();
         ros::spinOnce();
 	}
