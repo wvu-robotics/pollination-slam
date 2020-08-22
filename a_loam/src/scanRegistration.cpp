@@ -146,8 +146,8 @@ void removeRobotPoints(const pcl::PointCloud<PointType> &cloud_in,
             cloud_in.points[i].y < robotLeftY &&
             cloud_in.points[i].y > robotRightY &&
             cloud_in.points[i].z < robotUpZ &&
-            cloud_in.points[i].z < robotDownZ)
-            continue;
+            cloud_in.points[i].z > robotDownZ)
+              continue;
         cloud_out.points[j] = cloud_in.points[i];
         j++;
     }
@@ -155,7 +155,6 @@ void removeRobotPoints(const pcl::PointCloud<PointType> &cloud_in,
     {
         cloud_out.points.resize(j);
     }
-
     cloud_out.height = 1;
     cloud_out.width = static_cast<uint32_t>(j);
     cloud_out.is_dense = true;
@@ -181,13 +180,14 @@ void laserCloudHandler(const sensor_msgs::PointCloud2ConstPtr &laserCloudMsg)
     std::vector<int> scanEndInd(N_SCANS, 0);
 
     pcl::PointCloud<pcl::PointXYZ> laserCloudIn;
+    pcl::PointCloud<pcl::PointXYZ> laserCloudInFiltered;
     pcl::fromROSMsg(*laserCloudMsg, laserCloudIn);
     std::vector<int> indices;
 
     pcl::removeNaNFromPointCloud(laserCloudIn, laserCloudIn, indices);
     // removeClosedPointCloud(laserCloudIn, laserCloudIn, MINIMUM_RANGE);
     // pcl::PointCloud<pcl::PointXYZ> laserCloudFiltered;
-    removeRobotPoints(laserCloudIn, laserCloudIn);
+    removeRobotPoints(laserCloudIn, laserCloudInFiltered);
 
     int cloudSize = laserCloudIn.points.size();
     float startOri = -atan2(laserCloudIn.points[0].y, laserCloudIn.points[0].x);
@@ -470,10 +470,10 @@ void laserCloudHandler(const sensor_msgs::PointCloud2ConstPtr &laserCloudMsg)
     pubLaserCloud.publish(laserCloudOutMsg);
 
     sensor_msgs::PointCloud2 laserCloudFilteredMsg;
-    pcl::toROSMsg(laserCloudIn, laserCloudFilteredMsg);
+    pcl::toROSMsg(laserCloudInFiltered, laserCloudFilteredMsg);
     laserCloudFilteredMsg.header.stamp = laserCloudMsg->header.stamp;
     // laserCloudFilteredMsg.header.frame_id = "/camera_init";
-    laserCloudFilteredMsg.header.frame_id = "/map";
+    laserCloudFilteredMsg.header.frame_id = "velodyne";
     pubRemovePoints.publish(laserCloudFilteredMsg);
 
     sensor_msgs::PointCloud2 cornerPointsSharpMsg;
