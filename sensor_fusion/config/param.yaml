@@ -3,6 +3,6 @@ subscriber:
   lo_topic_name: /aft_mapped_to_init_high_frec # lidar odometry
   wo_topic_name: /husky_velocity_controller/odom # wheel odometry
 publisher:
-  pose_topic_name: states
+  pose_topic_name: /nav_filter/nav_filter/states
   base_frame_id: map
   child_frame_id: base_link

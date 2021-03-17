@@ -47,14 +47,15 @@ bool FusionFlow::run(){
     lo_sub_ptr_->ParseData(lo_data_buff_);
     imu_sub_ptr_->ParseData(imu_data_buff_);
     wo_sub_ptr_->ParseData(wo_data_buff_);
-
     // initialization
     if(!initialized_ && lo_data_buff_.size() > 0){
         initialized_ = true;
     }else if(!initialized_ && lo_data_buff_.size() == 0){
         return false;
     }
+
     // new lidar odometry data
+    // assumption: imu and wheel odometry udpate rate is higher than lidar odometry
     if(lo_data_buff_.size() > 0){
         start_lo_data_ = lo_data_buff_.front();
         start_imu_data_ = imu_data_buff_.back();

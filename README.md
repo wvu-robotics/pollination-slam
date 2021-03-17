@@ -32,21 +32,10 @@ cd build
 make -j8
 sudo make install
 ```
-2. GTSAM
-
-```
-git clone https://github.com/borglab/gtsam.git
-cd gtsam/
-mkdir build
-cd build
-cmake ..
-make check (optional, runs unit tests)
-sudo make install
-```
 # Launch SLAM code
 
 ```
-roslaunch nav_filter test_online.launch
+roslaunch sensor_fusion sensor_fusion.launch
 ```
 
 # Ports

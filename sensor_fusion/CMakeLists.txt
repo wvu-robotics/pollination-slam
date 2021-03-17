@@ -23,8 +23,8 @@ file(GLOB_RECURSE ALL_SRCS "*.cpp")
 file(GLOB_RECURSE NODE_SRCS "src/apps/*_node.cpp")
 list(REMOVE_ITEM ALL_SRCS ${NODE_SRCS})
 
-add_executable(fusion_node src/apps/fusion_node.cpp ${ALL_SRCS})
-target_link_libraries(fusion_node ${catkin_LIBRARIES} ${ALL_TARGET_LIBRARIES})
+add_executable(sensor_fusion_node src/apps/fusion_node.cpp ${ALL_SRCS})
+target_link_libraries(sensor_fusion_node ${catkin_LIBRARIES} ${ALL_TARGET_LIBRARIES})
 
 #############
 ## Install ##
@@ -43,7 +43,7 @@ target_link_libraries(fusion_node ${catkin_LIBRARIES} ${ALL_TARGET_LIBRARIES})
 ## Mark executables for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_executables.html
 install(TARGETS 
-        fusion_node
+    sensor_fusion_node
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
