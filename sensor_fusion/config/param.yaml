@@ -1,0 +1,6 @@
+subscriber:
+  imu_topic_name: ""
+  lo_topic_name: "" # lidar odometry
+  wo_topic_name: "" # wheel odometry
+publisher:
+  pose_topic_name: ""
