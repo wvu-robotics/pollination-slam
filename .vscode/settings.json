@@ -2,5 +2,9 @@
     "files.associations": {
         "unordered_map": "cpp",
         "*.cuh": "cpp"
-    }
+    },
+    "python.autoComplete.extraPaths": [
+        "/home/chizhao/Documents/pollination_ws/devel/lib/python3/dist-packages",
+        "/opt/ros/noetic/lib/python3/dist-packages"
+    ]
 }

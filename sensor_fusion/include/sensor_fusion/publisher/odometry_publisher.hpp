@@ -3,6 +3,7 @@
 
 #include <string>
 #include <Eigen/Dense>
+#include <Eigen/Geometry> 
 #include <ros/ros.h>
 #include <nav_msgs/Odometry.h>
 
@@ -16,7 +17,7 @@ class OdometryPublisher{
                         int buff_size);
         OdometryPublisher() = default;
 
-        void Publish(const Eigen::Vector3d& t, const Eigen::Quaternion& q, double time);
+        void Publish(const Eigen::Vector3d& t, const Eigen::Quaterniond& q, double time);
 
         bool hasSubscribers();
 

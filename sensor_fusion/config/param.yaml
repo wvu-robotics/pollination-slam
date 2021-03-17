@@ -1,6 +1,8 @@
 subscriber:
-  imu_topic_name: ""
-  lo_topic_name: "" # lidar odometry
-  wo_topic_name: "" # wheel odometry
+  imu_topic_name: /imu/data
+  lo_topic_name: /aft_mapped_to_init_high_frec # lidar odometry
+  wo_topic_name: /husky_velocity_controller/odom # wheel odometry
 publisher:
-  pose_topic_name: ""
+  pose_topic_name: states
+  base_frame_id: map
+  child_frame_id: base_link

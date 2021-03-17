@@ -1,7 +1,7 @@
 #include "sensor_fusion/fusion/fusion_flow.hpp"
 
 namespace sensor_fusion{
-FusionFlow::FUsionFlow(ros::NodeHandle& nh):nh_(nh), initialized_(false){
+FusionFlow::FusionFlow(ros::NodeHandle& nh):nh_(nh), initialized_(false){
     initParam();
     initRos();    
 }
@@ -9,27 +9,27 @@ FusionFlow::FUsionFlow(ros::NodeHandle& nh):nh_(nh), initialized_(false){
 void FusionFlow::initParam(){
     if(!nh_.getParam("/subscriber/imu_topic_name", imu_topic_name_)){
         ROS_ERROR("Failed to get param '/subscriber/imu_topic_name'");
-        imu_topic_name_ = "";
+        imu_topic_name_ = "/imu/data";
     }
     if(!nh_.getParam("/subscriber/lo_topic_name", lo_topic_name_)){
         ROS_ERROR("Failed to get param '/subscriber/lo_topic_name'");
-        lo_topic_name_ = "";
+        lo_topic_name_ = "/aft_mapped_to_init_high_frec";
     }
     if(!nh_.getParam("/subscriber/wo_topic_name", wo_topic_name_)){
         ROS_ERROR("Failed to get param '/subscriber/wo_topic_name'");
-        wo_topic_name_ = "";
+        wo_topic_name_ = "/husky_velocity_controller/odom";
     }
     if(!nh_.getParam("/publisher/pose_topic_name", pose_topic_name_)){
         ROS_ERROR("Failed to get param '/publisher/pose_topic_name'");
-        pose_topic_name_ = "";
+        pose_topic_name_ = "states";
     }
     if(!nh_.getParam("/publisher/base_frame_id", base_frame_id_)){
         ROS_ERROR("Failed to get param '/publisher/base_frame_id'");
-        base_frame_id_ = "";
+        base_frame_id_ = "map";
     }
     if(!nh_.getParam("/publisher/child_frame_id", child_frame_id_)){
         ROS_ERROR("Failed to get param '/publisher/child_frame_id'");
-        child_frame_id_ = "";
+        child_frame_id_ = "base_link";
     }
 
 }
@@ -44,14 +44,14 @@ void FusionFlow::initRos(){
 
 bool FusionFlow::run(){
     // read data
-    lo_sub_ptr->ParseData(lo_data_buff_);
-    imu_sub_ptr->ParseData(imu_data_buff_);
-    wo_sub_ptr->ParseData(wo_data_buff_);
+    lo_sub_ptr_->ParseData(lo_data_buff_);
+    imu_sub_ptr_->ParseData(imu_data_buff_);
+    wo_sub_ptr_->ParseData(wo_data_buff_);
 
     // initialization
-    if(!initialized_ && lo_data_buff_size() > 0){
+    if(!initialized_ && lo_data_buff_.size() > 0){
         initialized_ = true;
-    }else if(!initialized_ && lo_data_buff_size() == 0){
+    }else if(!initialized_ && lo_data_buff_.size() == 0){
         return false;
     }
     // new lidar odometry data
@@ -63,7 +63,7 @@ bool FusionFlow::run(){
         lo_data_buff_.pop_front();
         imu_data_buff_.clear();
         wo_data_buff_.clear();
-    }else
+    }else{
         current_imu_data_ = imu_data_buff_.front();
         current_wo_data_ = wo_data_buff_.front();
 
@@ -73,19 +73,19 @@ bool FusionFlow::run(){
 
     // get the high freq update pose
     // start_lo_data += imu_data_.delta_orientation, wo_data.delta_position
-    Eigen::Quaternion q_cur_imu(current_imu_data_.orientation.w,
+    Eigen::Quaterniond q_cur_imu(current_imu_data_.orientation.w,
                                 current_imu_data_.orientation.x,
                                 current_imu_data_.orientation.y,
                                 current_imu_data_.orientation.z);
-    Eigen::Quaternion q_start_imu(start_imu_data_.orientation.w,
+    Eigen::Quaterniond q_start_imu(start_imu_data_.orientation.w,
                                 start_imu_data_.orientation.x,
                                 start_imu_data_.orientation.y,
                                 start_imu_data_.orientation.z);
-    Eigen::Quaternion q_start_lo(start_lo_data_.orientation.w,
+    Eigen::Quaterniond q_start_lo(start_lo_data_.orientation.w,
                                 start_lo_data_.orientation.x,
                                 start_lo_data_.orientation.y,
                                 start_lo_data_.orientation.z);
-    Eigen::Quaternion q_pose;
+    Eigen::Quaterniond q_pose;
     q_pose = q_cur_imu * q_start_imu.inverse() * q_start_lo;
     // q_pose = q_pose.normoalized();
 
@@ -105,7 +105,7 @@ bool FusionFlow::run(){
     t_pose = t_start_lo + t_cur_wo - t_start_wo;
 
     // publish
-    pose_pub_ptr->Publish(t_pose, q_pose, current_imu_data_.time);
+    pose_pub_ptr_->Publish(t_pose, q_pose, current_imu_data_.time);
 
     return true;
 }

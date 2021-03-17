@@ -13,14 +13,14 @@ OdometryPublisher::OdometryPublisher(ros::NodeHandle& nh,
     odometry_.child_frame_id = child_frame_id;
 }
 
-void OdometryPublisher::Publish(const Eigen::Vector3d& t, const Eigen::Quaternion& q, double time){
+void OdometryPublisher::Publish(const Eigen::Vector3d& t, const Eigen::Quaterniond& q, double time){
     ros::Time ros_time(time);
 
-    odometry_.header.stamp = time;
+    odometry_.header.stamp = ros_time;
 
-    odometry_.pose.pose.position.x = t.x;
-    odometry_.pose.pose.position.y = t.y;
-    odometry_.pose.pose.position.z = t.z;
+    odometry_.pose.pose.position.x = t.x();
+    odometry_.pose.pose.position.y = t.y();
+    odometry_.pose.pose.position.z = t.z();
 
     odometry_.pose.pose.orientation.x = q.x();
     odometry_.pose.pose.orientation.y = q.y();

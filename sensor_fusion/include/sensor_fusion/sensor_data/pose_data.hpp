@@ -17,7 +17,7 @@ class PoseData{
         double y = 0.0;
         double z = 0.0;
         double w = 0.0;
-    }
+    };
     
     double time = 0.0;
     Position position;

@@ -1,4 +1,8 @@
 <launch>
+    <node pkg="tf" type="static_transform_publisher" name="greenhouse_to_map" args="1 0 0 0 1.7 2.61 0 greenhouse map 100" />
     <rosparam file="$(find sensor_fusion)/config/param.yaml"/>
     <node pkg="sensor_fusion" type="sensor_fusion_node" name="sensor_fusion_node" output="screen"/>
+
+    <include file="$(find aloam_velodyne)/launch/aloam_velodyne_HDL_32.launch"/>
+    <!-- <include file="$(find gicp_localization)/launch/test_online.launch"/> -->
 </launch>

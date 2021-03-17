@@ -2,6 +2,7 @@
 #define SENSOR_FUSION_FUSION_FUSION_FLOW_HPP_
 
 #include <Eigen/Dense>
+#include <Eigen/Geometry> 
 // subscriber
 #include "sensor_fusion/subscriber/imu_subscriber.hpp"
 #include "sensor_fusion/subscriber/lo_subscriber.hpp"
@@ -11,7 +12,7 @@
 
 
 namespace sensor_fusion{
-clase FusionFlow{
+class FusionFlow{
     public:
         FusionFlow(ros::NodeHandle& nh);
 
