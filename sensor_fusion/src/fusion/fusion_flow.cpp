@@ -65,11 +65,14 @@ bool FusionFlow::run(){
         imu_data_buff_.clear();
         wo_data_buff_.clear();
     }else{
-        current_imu_data_ = imu_data_buff_.front();
-        current_wo_data_ = wo_data_buff_.front();
-
-        imu_data_buff_.pop_front();
-        wo_data_buff_.pop_front();
+        if(imu_data_buff_.size() > 0){
+            current_imu_data_ = imu_data_buff_.front();
+            imu_data_buff_.pop_front();
+        }
+        if(wo_data_buff_.size() > 0){
+            current_wo_data_ = wo_data_buff_.front();
+            wo_data_buff_.pop_front();
+        }
     }
 
     // get the high freq update pose
@@ -103,7 +106,13 @@ bool FusionFlow::run(){
                             start_lo_data_.position.z);
 
     Eigen::Vector3d t_pose;
+
+    // in case the wheel odometry has wrong solution
+    if((t_cur_wo - t_start_wo).norm() > 0.5){
+        return false;
+    }
     t_pose = t_start_lo + t_cur_wo - t_start_wo;
+    
 
     // publish
     pose_pub_ptr_->Publish(t_pose, q_pose, current_imu_data_.time);
