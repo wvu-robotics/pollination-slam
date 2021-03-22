@@ -3,6 +3,9 @@
 
 #include <Eigen/Dense>
 #include <Eigen/Geometry> 
+
+#include "sensor_fusion/sensor_data/imu_data.hpp"
+#include "sensor_fusion/sensor_data/pose_data.hpp"
 // subscriber
 #include "sensor_fusion/subscriber/imu_subscriber.hpp"
 #include "sensor_fusion/subscriber/lo_subscriber.hpp"
@@ -55,6 +58,9 @@ class FusionFlow{
         IMUData start_imu_data_;
         PoseData start_lo_data_;
         PoseData start_wo_data_;
+
+        int imu_idx_;
+        int wo_idx_;
         
 };
 

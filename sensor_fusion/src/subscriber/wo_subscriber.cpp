@@ -7,6 +7,8 @@ WoSubscriber::WoSubscriber(ros::NodeHandle& nh, std::string topic_name, size_t b
 }
 
 void WoSubscriber::msg_callback(const nav_msgs::OdometryConstPtr& wo_msg_ptr){
+    buff_mutex_.lock();
+
     PoseData pose_data;
     pose_data.time = wo_msg_ptr->header.stamp.toSec();
 
@@ -20,13 +22,19 @@ void WoSubscriber::msg_callback(const nav_msgs::OdometryConstPtr& wo_msg_ptr){
     pose_data.orientation.w = wo_msg_ptr->pose.pose.orientation.w;
 
     new_pose_data_.push_back(pose_data);
+
+    buff_mutex_.unlock();
 }
 
 void WoSubscriber::ParseData(std::deque<PoseData>& pose_data_buff){
+    buff_mutex_.lock();
+
     if(new_pose_data_.size() > 0){
         pose_data_buff.insert(pose_data_buff.end(), new_pose_data_.begin(), new_pose_data_.end());
         new_pose_data_.clear();
     }
+
+    buff_mutex_.unlock();
 }
 
 

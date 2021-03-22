@@ -10,7 +10,7 @@ int main(int argc, char *argv[]){
 
     std::shared_ptr<FusionFlow> fusion_flow_ptr = std::make_shared<FusionFlow>(nh);
 
-    ros::Rate rate(100);
+    ros::Rate rate(50);
     while(ros::ok()){
         ros::spinOnce();
         fusion_flow_ptr->run();

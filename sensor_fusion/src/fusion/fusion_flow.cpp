@@ -32,6 +32,8 @@ void FusionFlow::initParam(){
         child_frame_id_ = "base_link";
     }
 
+
+
 }
 
 void FusionFlow::initRos(){
@@ -44,9 +46,12 @@ void FusionFlow::initRos(){
 
 bool FusionFlow::run(){
     // read data
+    static std::deque<IMUData> unsynced_imu_data_buff_;
+    static std::deque<PoseData> unsynced_wo_data_buff_;
+
     lo_sub_ptr_->ParseData(lo_data_buff_);
-    imu_sub_ptr_->ParseData(imu_data_buff_);
-    wo_sub_ptr_->ParseData(wo_data_buff_);
+    imu_sub_ptr_->ParseData(unsynced_imu_data_buff_);
+    wo_sub_ptr_->ParseData(unsynced_wo_data_buff_);
     // initialization
     if(!initialized_ && lo_data_buff_.size() > 0){
         initialized_ = true;
@@ -58,21 +63,34 @@ bool FusionFlow::run(){
     // assumption: imu and wheel odometry udpate rate is higher than lidar odometry
     if(lo_data_buff_.size() > 0){
         start_lo_data_ = lo_data_buff_.front();
-        start_imu_data_ = imu_data_buff_.back();
-        start_wo_data_ = wo_data_buff_.back();
-
         lo_data_buff_.pop_front();
-        imu_data_buff_.clear();
-        wo_data_buff_.clear();
-    }else{
-        if(imu_data_buff_.size() > 0){
-            current_imu_data_ = imu_data_buff_.front();
+
+        // sync IMU and wheel odometry measurement using lidar odometry time
+        double lo_time = start_lo_data_.time;
+        bool valid_imu = IMUData::SyncData(unsynced_imu_data_buff_, imu_data_buff_, lo_time);
+        bool valid_wo = PoseData::SyncData(unsynced_wo_data_buff_, wo_data_buff_, lo_time);
+
+        if(valid_imu){
+            start_imu_data_ = imu_data_buff_.front();
             imu_data_buff_.pop_front();
-        }
-        if(wo_data_buff_.size() > 0){
-            current_wo_data_ = wo_data_buff_.front();
+            imu_idx_ = 1;   // read data from unsync imu data buff
+        }else return false;
+
+        if(valid_wo){
+            start_wo_data_ = wo_data_buff_.front();
             wo_data_buff_.pop_front();
-        }
+            wo_idx_ = 1;    // read data from unsync wo data buff
+        }else return false;
+
+    }else{
+        if((int)unsynced_imu_data_buff_.size() > imu_idx_){
+            current_imu_data_ = unsynced_imu_data_buff_[imu_idx_];
+            imu_idx_++;
+        }else return false;
+        if((int)unsynced_wo_data_buff_.size() > wo_idx_){
+            current_wo_data_ = unsynced_wo_data_buff_[wo_idx_];
+            wo_idx_++;
+        }else return false;
     }
 
     // get the high freq update pose
@@ -108,7 +126,7 @@ bool FusionFlow::run(){
     Eigen::Vector3d t_pose;
 
     // in case the wheel odometry has wrong solution
-    if((t_cur_wo - t_start_wo).norm() > 0.5){
+    if((t_cur_wo - t_start_wo).norm() > 0.3){
         return false;
     }
     t_pose = t_start_lo + t_cur_wo - t_start_wo;

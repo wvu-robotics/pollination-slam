@@ -24,6 +24,7 @@ file(GLOB_RECURSE NODE_SRCS "src/apps/*_node.cpp")
 list(REMOVE_ITEM ALL_SRCS ${NODE_SRCS})
 
 add_executable(sensor_fusion_node src/apps/fusion_node.cpp ${ALL_SRCS})
+add_dependencies(sensor_fusion_node ${catkin_EXPORTED_TARGETS})
 target_link_libraries(sensor_fusion_node ${catkin_LIBRARIES} ${ALL_TARGET_LIBRARIES})
 
 #############

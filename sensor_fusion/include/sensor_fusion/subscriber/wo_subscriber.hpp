@@ -2,6 +2,9 @@
 #define SENSOR_FUSION_SUBSRIBER_WO_SUBSCRIBER_HPP_
 
 #include <deque>
+#include <mutex>
+#include <thread>
+
 #include <ros/ros.h>
 #include "nav_msgs/Odometry.h"
 #include "sensor_fusion/sensor_data/pose_data.hpp"
@@ -20,6 +23,8 @@ class WoSubscriber{
         ros::NodeHandle nh_;
         ros::Subscriber subscriber_;
         std::deque<PoseData> new_pose_data_;
+
+        std::mutex buff_mutex_;
 };
 
 }

@@ -2,7 +2,11 @@
 #define SENSOR_FUSION_SUBSRIBER_IMU_SUBSCRIBER_HPP_
 
 #include <deque>
+#include <mutex>
+#include <thread>
+
 #include <ros/ros.h>
+
 #include "sensor_msgs/Imu.h"
 #include "sensor_fusion/sensor_data/imu_data.hpp"
 
@@ -20,6 +24,8 @@ class IMUSubscriber{
         ros::NodeHandle nh_;
         ros::Subscriber subscriber_;
         std::deque<IMUData> new_imu_data_;
+
+        std::mutex buff_mutex_;
 };
 
 }
