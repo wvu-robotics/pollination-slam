@@ -185,14 +185,8 @@ void laserCloudFullResHandler(const sensor_msgs::PointCloud2ConstPtr &laserCloud
 
 int main(int argc, char **argv)
 {
-    printf("beginning of main\n");
-    fflush(stdout);
     ros::init(argc, argv, "laserOdometry");
-    printf("after ros init\n");
-    fflush(stdout);
     ros::NodeHandle nh;
-    printf("after nh\n");
-    fflush(stdout);
 
     nh.param<int>("mapping_skip_frame", skipFrameNum, 2);
 
