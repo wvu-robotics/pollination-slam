@@ -130,8 +130,8 @@ Eigen::Quaterniond q_wodom_curr(1, 0, 0, 0);
 Eigen::Vector3d t_wodom_curr(0, 0, 0);
 
 // transformation between lidar's frame and center of rover.
-Eigen::Quaterniond q_curr_lidar(r_w, r_x, r_y, r_z);
-Eigen::Vector3d t_curr_lidar(t_x, t_y, t_z);
+Eigen::Quaterniond q_curr_body(r_w, r_x, r_y, r_z);
+Eigen::Vector3d t_curr_body(t_x, t_y, t_z);
 
 std::queue<sensor_msgs::PointCloud2ConstPtr> cornerLastBuf;
 std::queue<sensor_msgs::PointCloud2ConstPtr> surfLastBuf;
@@ -228,11 +228,11 @@ void laserOdometryHandler(const nav_msgs::Odometry::ConstPtr &laserOdometry)
 	Eigen::Vector3d t_w_curr(0.0, 0.0, 0.0);
 	if(do_transform_to_center){
 		// transformation between lidar's frame and odom's world frame.
-		Eigen::Quaterniond q_wodom_lidar = q_wodom_curr * q_curr_lidar;
-		Eigen::Vector3d t_wodom_lidar = q_wodom_curr * t_curr_lidar + t_wodom_curr;
+		Eigen::Quaterniond q_wodom_body = q_wodom_curr * q_curr_body;
+		Eigen::Vector3d t_wodom_body = q_wodom_curr * t_curr_body + t_wodom_curr;
 
-		q_w_curr = q_wmap_wodom * q_wodom_lidar;
-		t_w_curr = q_wmap_wodom * t_wodom_lidar + t_wmap_wodom;
+		q_w_curr = q_wmap_wodom * q_wodom_body;
+		t_w_curr = q_wmap_wodom * t_wodom_body + t_wmap_wodom;
 	}else{
 		q_w_curr = q_wmap_wodom * q_wodom_curr;
 		t_w_curr = q_wmap_wodom * t_wodom_curr + t_wmap_wodom;
@@ -880,19 +880,28 @@ void process()
 			// printf("mapping pub time %f ms \n", t_pub.toc());
 
 			// printf("whole mapping time %f ms +++++\n", t_whole.toc());
-
+			Eigen::Quaterniond q_w_body;
+			Eigen::Vector3d t_w_body;
+			if(do_transform_to_center){
+				// transformation between lidar's frame and odom's world frame.
+				q_w_body = q_w_curr * q_curr_body;
+				t_w_body = q_w_curr * t_curr_body + t_w_curr;
+			}else{
+				q_w_body = q_w_curr;
+				t_w_body = t_w_curr;
+			}
 			nav_msgs::Odometry odomAftMapped;
 			// odomAftMapped.header.frame_id = "/camera_init";
 			odomAftMapped.header.frame_id = "/map";
 			odomAftMapped.child_frame_id = "/aft_mapped";
 			odomAftMapped.header.stamp = ros::Time().fromSec(timeLaserOdometry);
-			odomAftMapped.pose.pose.orientation.x = q_w_curr.x();
-			odomAftMapped.pose.pose.orientation.y = q_w_curr.y();
-			odomAftMapped.pose.pose.orientation.z = q_w_curr.z();
-			odomAftMapped.pose.pose.orientation.w = q_w_curr.w();
-			odomAftMapped.pose.pose.position.x = t_w_curr.x();
-			odomAftMapped.pose.pose.position.y = t_w_curr.y();
-			odomAftMapped.pose.pose.position.z = t_w_curr.z();
+			odomAftMapped.pose.pose.orientation.x = q_w_body.x();
+			odomAftMapped.pose.pose.orientation.y = q_w_body.y();
+			odomAftMapped.pose.pose.orientation.z = q_w_body.z();
+			odomAftMapped.pose.pose.orientation.w = q_w_body.w();
+			odomAftMapped.pose.pose.position.x = t_w_body.x();
+			odomAftMapped.pose.pose.position.y = t_w_body.y();
+			odomAftMapped.pose.pose.position.z = t_w_body.z();
 			pubOdomAftMapped.publish(odomAftMapped);
 
 			geometry_msgs::PoseStamped laserAfterMappedPose;
@@ -907,16 +916,16 @@ void process()
 			static tf::TransformBroadcaster br;
 			tf::Transform transform;
 			tf::Quaternion q;
-			transform.setOrigin(tf::Vector3(t_w_curr(0),
-											t_w_curr(1),
-											t_w_curr(2)));
-			transform.setOrigin(tf::Vector3(t_w_curr(0),
-											t_w_curr(1),
+			// transform.setOrigin(tf::Vector3(t_w_curr(0),
+			// 								t_w_curr(1),
+			// 								t_w_curr(2)));
+			transform.setOrigin(tf::Vector3(t_w_body(0),
+											t_w_body(1),
 											0.0));
-			q.setW(q_w_curr.w());
-			q.setX(q_w_curr.x());
-			q.setY(q_w_curr.y());
-			q.setZ(q_w_curr.z());
+			q.setW(q_w_body.w());
+			q.setX(q_w_body.x());
+			q.setY(q_w_body.y());
+			q.setZ(q_w_body.z());
 			transform.setRotation(q);
 			// br.sendTransform(tf::StampedTransform(transform, odomAftMapped.header.stamp, "/camera_init", "/aft_mapped"));
 			br.sendTransform(tf::StampedTransform(transform, odomAftMapped.header.stamp, "/map", "/base_link"));

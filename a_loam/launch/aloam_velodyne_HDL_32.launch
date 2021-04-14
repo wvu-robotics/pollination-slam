@@ -17,15 +17,15 @@
     <param name="robot_down_z" type="double" value="-1.5"/>
     <param name="robot_up_z" type="double" value="0.5"/>
 
-    <!-- transform from lidar to center of rover -->
+    <!-- transform from center of rover to lidar-->
     <param name="do_transform_to_center" type="bool" value="true"/>
     <param name="r_w" type="double" value="1.0"/>
     <param name="r_x" type="double" value="0.0"/>
     <param name="r_y" type="double" value="0.0"/>
     <param name="r_z" type="double" value="0.0"/>
-    <param name="t_x" type="double" value="-0.3962"/>
+    <param name="t_x" type="double" value="0.3962"/>
     <param name="t_y" type="double" value="0.0"/>
-    <param name="t_z" type="double" value="0.873"/>
+    <param name="t_z" type="double" value="-0.873"/>
 
 
     <param name="mapping_line_resolution" type="double" value="0.2"/>
