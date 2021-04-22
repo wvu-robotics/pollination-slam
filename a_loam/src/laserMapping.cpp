@@ -91,9 +91,9 @@ float r_w = 1.0;
 float r_x = 0.0;
 float r_y = 0.0;
 float r_z = 0.0;
-float t_x = -0.3962;
+float t_x = 0.3962;
 float t_y = 0.0;
-float t_z = 0.873;
+float t_z = -0.873;
 
 // input: from odom
 pcl::PointCloud<PointType>::Ptr laserCloudCornerLast(new pcl::PointCloud<PointType>());
@@ -228,9 +228,12 @@ void laserOdometryHandler(const nav_msgs::Odometry::ConstPtr &laserOdometry)
 	Eigen::Vector3d t_w_curr(0.0, 0.0, 0.0);
 	if(do_transform_to_center){
 		// transformation between lidar's frame and odom's world frame.
-		Eigen::Quaterniond q_wodom_body = q_wodom_curr * q_curr_body;
-		Eigen::Vector3d t_wodom_body = q_wodom_curr * t_curr_body + t_wodom_curr;
-
+		Eigen::Quaterniond q_body_wodom = q_curr_body.inverse() * q_wodom_curr.inverse();
+		Eigen::Vector3d t_body_wodom = q_wodom_curr.inverse() * (-1 * t_curr_body) - t_wodom_curr;
+        
+        Eigen::Quaterniond q_wodom_body = q_body_wodom.inverse();
+        Eigen::Vector3d t_wodom_body = -t_body_wodom;
+        
 		q_w_curr = q_wmap_wodom * q_wodom_body;
 		t_w_curr = q_wmap_wodom * t_wodom_body + t_wmap_wodom;
 	}else{
@@ -884,8 +887,32 @@ void process()
 			Eigen::Vector3d t_w_body;
 			if(do_transform_to_center){
 				// transformation between lidar's frame and odom's world frame.
-				q_w_body = q_w_curr * q_curr_body;
-				t_w_body = q_w_curr * t_curr_body + t_w_curr;
+				Eigen::Matrix4d T_w_curr;
+				T_w_curr.setIdentity(); 
+                T_w_curr.block<3,3>(0,0) = q_w_curr.toRotationMatrix();
+                T_w_curr.block<3,1>(0,3) = t_w_curr;
+                
+                Eigen::Matrix4d T_curr_w;
+                T_curr_w = T_w_curr.inverse();
+                
+                Eigen::Matrix4d T_curr_body;
+				T_curr_body.setIdentity(); 
+                T_curr_body.block<3,3>(0,0) = q_curr_body.toRotationMatrix();
+                T_curr_body.block<3,1>(0,3) = t_curr_body;
+                
+                Eigen::Matrix4d T_body_curr;
+                T_body_curr = T_curr_body.inverse();
+                
+                Eigen::Matrix4d T_body_w;
+                T_body_w = T_body_curr * T_curr_w;
+                
+                Eigen::Matrix4d T_w_body;
+                T_w_body = T_body_w.inverse();
+                
+				q_w_body = T_w_body.block<3,3>(0,0);
+				t_w_body = T_w_body.block<3,1>(0,3);
+				// q_w_body = q_w_curr * q_curr_body;
+				// t_w_body = q_w_curr * t_curr_body + t_w_curr;
 			}else{
 				q_w_body = q_w_curr;
 				t_w_body = t_w_curr;
@@ -953,9 +980,20 @@ int main(int argc, char **argv)
 	nh.param<float>("r_x", r_x, 0.0);
 	nh.param<float>("r_y", r_y, 0.0);
 	nh.param<float>("r_z", r_z, 0.0);
-	nh.param<float>("t_x", t_x, -0.3962);
+	nh.param<float>("t_x", t_x, 0.3962);
 	nh.param<float>("t_y", t_y, 0.0);
-	nh.param<float>("t_z", t_z, 0.873);
+	nh.param<float>("t_z", t_z, -0.873);
+	
+	// transformation between lidar's frame and center of rover.
+
+    q_curr_body.w() = r_w;
+    q_curr_body.x() = r_x;
+    q_curr_body.y() = r_y;
+    q_curr_body.z() = r_z;
+
+    t_curr_body.x() = t_x;
+    t_curr_body.y() = t_y;
+    t_curr_body.z() = t_z;
 
 	downSizeFilterCorner.setLeafSize(lineRes, lineRes,lineRes);
 	downSizeFilterSurf.setLeafSize(planeRes, planeRes, planeRes);
