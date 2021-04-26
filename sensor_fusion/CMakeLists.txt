@@ -16,6 +16,8 @@ find_package(catkin REQUIRED COMPONENTS
 
 set(ALL_TARGET_LIBRARIES "")
 
+include(cmake/PCL.cmake)
+
 include_directories(include ${catkin_INCLUDE_DIRS})
 catkin_package()
 
@@ -26,6 +28,10 @@ list(REMOVE_ITEM ALL_SRCS ${NODE_SRCS})
 add_executable(sensor_fusion_node src/apps/fusion_node.cpp ${ALL_SRCS})
 add_dependencies(sensor_fusion_node ${catkin_EXPORTED_TARGETS})
 target_link_libraries(sensor_fusion_node ${catkin_LIBRARIES} ${ALL_TARGET_LIBRARIES})
+
+add_executable(data_pretreat_node src/apps/data_pretreat_node.cpp ${ALL_SRCS})
+add_dependencies(data_pretreat_node ${catkin_EXPORTED_TARGETS})
+target_link_libraries(data_pretreat_node ${catkin_LIBRARIES} ${ALL_TARGET_LIBRARIES})
 
 #############
 ## Install ##
