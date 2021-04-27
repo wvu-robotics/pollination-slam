@@ -17,7 +17,7 @@ void CloudSubscriber::msg_callback(const sensor_msgs::PointCloud2::ConstPtr& clo
 
     // convert ROS PointCloud2 to pcl::PointCloud<pcl::PointXYZ>:
     CloudData cloud_data;
-    cloud_data.time = cloud_msg_ptr->header.stamp.toSec();
+    cloud_data.time = cloud_msg_ptr->header.stamp.toSec() - 0.05; // TODO
     pcl::fromROSMsg(*cloud_msg_ptr, *(cloud_data.cloud_ptr));
     // add new message to buffer:
     new_cloud_data_.push_back(cloud_data);

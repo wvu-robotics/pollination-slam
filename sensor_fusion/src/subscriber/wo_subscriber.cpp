@@ -9,29 +9,36 @@ WoSubscriber::WoSubscriber(ros::NodeHandle& nh, std::string topic_name, size_t b
 void WoSubscriber::msg_callback(const nav_msgs::OdometryConstPtr& wo_msg_ptr){
     buff_mutex_.lock();
 
-    PoseData pose_data;
-    pose_data.time = wo_msg_ptr->header.stamp.toSec();
+    OdometryData odometry_data;
+    odometry_data.time = wo_msg_ptr->header.stamp.toSec();
 
-    pose_data.position.x = wo_msg_ptr->pose.pose.position.x;
-    pose_data.position.y = wo_msg_ptr->pose.pose.position.y;
-    pose_data.position.z = wo_msg_ptr->pose.pose.position.z;
+    odometry_data.position.x = wo_msg_ptr->pose.pose.position.x;
+    odometry_data.position.y = wo_msg_ptr->pose.pose.position.y;
+    odometry_data.position.z = wo_msg_ptr->pose.pose.position.z;
 
-    pose_data.orientation.x = wo_msg_ptr->pose.pose.orientation.x;
-    pose_data.orientation.y = wo_msg_ptr->pose.pose.orientation.y;
-    pose_data.orientation.z = wo_msg_ptr->pose.pose.orientation.z;
-    pose_data.orientation.w = wo_msg_ptr->pose.pose.orientation.w;
+    odometry_data.orientation.x = wo_msg_ptr->pose.pose.orientation.x;
+    odometry_data.orientation.y = wo_msg_ptr->pose.pose.orientation.y;
+    odometry_data.orientation.z = wo_msg_ptr->pose.pose.orientation.z;
+    odometry_data.orientation.w = wo_msg_ptr->pose.pose.orientation.w;
 
-    new_pose_data_.push_back(pose_data);
+    odometry_data.linear.x = wo_msg_ptr->twist.twist.linear.x;
+    odometry_data.linear.y = wo_msg_ptr->twist.twist.linear.y;
+    odometry_data.linear.z = wo_msg_ptr->twist.twist.linear.z;
+    odometry_data.angular.x = wo_msg_ptr->twist.twist.angular.x;
+    odometry_data.angular.y = wo_msg_ptr->twist.twist.angular.y;
+    odometry_data.angular.z = wo_msg_ptr->twist.twist.angular.z;
+    
+    new_odometry_data_.push_back(odometry_data);
 
     buff_mutex_.unlock();
 }
 
-void WoSubscriber::ParseData(std::deque<PoseData>& pose_data_buff){
+void WoSubscriber::ParseData(std::deque<OdometryData>& odometry_data_buff){
     buff_mutex_.lock();
 
-    if(new_pose_data_.size() > 0){
-        pose_data_buff.insert(pose_data_buff.end(), new_pose_data_.begin(), new_pose_data_.end());
-        new_pose_data_.clear();
+    if(new_odometry_data_.size() > 0){
+        odometry_data_buff.insert(odometry_data_buff.end(), new_odometry_data_.begin(), new_odometry_data_.end());
+        new_odometry_data_.clear();
     }
 
     buff_mutex_.unlock();

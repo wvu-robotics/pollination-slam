@@ -7,14 +7,14 @@
 
 #include <ros/ros.h>
 #include "nav_msgs/Odometry.h"
-#include "sensor_fusion/sensor_data/pose_data.hpp"
+#include "sensor_fusion/sensor_data/odometry_data.hpp"
 
 namespace sensor_fusion{
 class WoSubscriber{
     public:
         WoSubscriber(ros::NodeHandle& nh, std::string topic_name, size_t buff_size);
         WoSubscriber() = default;
-        void ParseData(std::deque<PoseData>& pose_data_buff);
+        void ParseData(std::deque<OdometryData>& odometry_data_buff);
 
     private:
         void msg_callback(const nav_msgs::OdometryConstPtr& wo_msg_ptr);
@@ -22,7 +22,7 @@ class WoSubscriber{
     private:
         ros::NodeHandle nh_;
         ros::Subscriber subscriber_;
-        std::deque<PoseData> new_pose_data_;
+        std::deque<OdometryData> new_odometry_data_;
 
         std::mutex buff_mutex_;
 };

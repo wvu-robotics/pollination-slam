@@ -5,6 +5,7 @@
 #include <Eigen/Geometry> 
 
 #include "sensor_fusion/sensor_data/imu_data.hpp"
+#include "sensor_fusion/sensor_data/odometry_data.hpp"
 #include "sensor_fusion/sensor_data/pose_data.hpp"
 // subscriber
 #include "sensor_fusion/subscriber/imu_subscriber.hpp"
@@ -49,15 +50,15 @@ class FusionFlow{
 
         std::deque<IMUData> imu_data_buff_;
         std::deque<PoseData> lo_data_buff_;
-        std::deque<PoseData> wo_data_buff_;
+        std::deque<OdometryData> wo_data_buff_;
 
         IMUData current_imu_data_;
         PoseData current_lo_data_;
-        PoseData current_wo_data_;
+        OdometryData current_wo_data_;
 
         IMUData start_imu_data_;
         PoseData start_lo_data_;
-        PoseData start_wo_data_;
+        OdometryData start_wo_data_;
 
         int imu_idx_;
         int wo_idx_;

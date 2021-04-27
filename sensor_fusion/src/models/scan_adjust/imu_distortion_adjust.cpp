@@ -14,7 +14,6 @@ bool IMUDistortionAdjust::AdjustCloud(CloudData& input_cloud, CloudData& output_
     }
     current_scan_time_end_ = cloud_data_buff_.at(1).time;
     scan_period_ = current_scan_time_end_ - current_scan_time_start_;
-
     origin_cloud_ptr_.reset(new CloudData::CLOUD(*(input_cloud.cloud_ptr)));
     output_cloud_ptr_.reset(new CloudData::CLOUD());
 
@@ -59,6 +58,7 @@ void IMUDistortionAdjust::ResetParameters() {
 }
 
 bool IMUDistortionAdjust::PruneIMUDeque() {
+    // printf("different time of imu data last: %f \n", imu_data_buff_.back().time - current_scan_time_end_);
     if (imu_data_buff_.back().time < current_scan_time_end_) {
         std::cout<<"IMU data is slower than cloud data ... " << std::endl;
         return false;

@@ -47,7 +47,7 @@ void FusionFlow::initRos(){
 bool FusionFlow::run(){
     // read data
     static std::deque<IMUData> unsynced_imu_data_buff_;
-    static std::deque<PoseData> unsynced_wo_data_buff_;
+    static std::deque<OdometryData> unsynced_wo_data_buff_;
 
     lo_sub_ptr_->ParseData(lo_data_buff_);
     imu_sub_ptr_->ParseData(unsynced_imu_data_buff_);
@@ -68,9 +68,10 @@ bool FusionFlow::run(){
         // sync IMU and wheel odometry measurement using lidar odometry time
         double lo_time = start_lo_data_.time;
         bool valid_imu = IMUData::SyncData(unsynced_imu_data_buff_, imu_data_buff_, lo_time);
-        bool valid_wo = PoseData::SyncData(unsynced_wo_data_buff_, wo_data_buff_, lo_time);
+        bool valid_wo = OdometryData::SyncData(unsynced_wo_data_buff_, wo_data_buff_, lo_time);
 
-        if(valid_imu){
+        /* 
+	if(valid_imu){
             start_imu_data_ = imu_data_buff_.front();
             imu_data_buff_.pop_front();
             imu_idx_ = 1;   // read data from unsync imu data buff
@@ -81,12 +82,28 @@ bool FusionFlow::run(){
             wo_data_buff_.pop_front();
             wo_idx_ = 1;    // read data from unsync wo data buff
         }else return false;
+	*/
 
+	if (unsynced_imu_data_buff_.size() == 0) {
+		printf("no imu data input");
+		return false;
+	}
+
+	if (unsynced_wo_data_buff_.size() == 0) {
+		printf("no wheel odometry input");
+		return false;
+	}
+	
+	start_imu_data_ = unsynced_imu_data_buff_.front();
+	start_wo_data_ = unsynced_wo_data_buff_.front();
+	imu_idx_ = 1;
+	wo_idx_ = 1;
     }else{
         if((int)unsynced_imu_data_buff_.size() > imu_idx_){
             current_imu_data_ = unsynced_imu_data_buff_[imu_idx_];
             imu_idx_++;
         }else return false;
+
         if((int)unsynced_wo_data_buff_.size() > wo_idx_){
             current_wo_data_ = unsynced_wo_data_buff_[wo_idx_];
             wo_idx_++;
@@ -109,7 +126,7 @@ bool FusionFlow::run(){
                                 start_lo_data_.orientation.z);
     Eigen::Quaterniond q_pose;
     q_pose = q_cur_imu * q_start_imu.inverse() * q_start_lo;
-    // q_pose = q_pose.normoalized();
+    q_pose = q_pose.normalized();
 
     Eigen::Vector3d t_cur_wo(current_wo_data_.position.x,
                             current_wo_data_.position.y,
@@ -124,16 +141,23 @@ bool FusionFlow::run(){
                             start_lo_data_.position.z);
 
     Eigen::Vector3d t_pose;
-
+    
+    /*
     // in case the wheel odometry has wrong solution
     if((t_cur_wo - t_start_wo).norm() > 0.3){
         return false;
     }
+    */
     t_pose = t_start_lo + t_cur_wo - t_start_wo;
     
-
+    Eigen::Vector3d linear(current_wo_data_.linear.x,
+		    current_wo_data_.linear.y,
+		    current_wo_data_.linear.z);
+    Eigen::Vector3d angular(current_imu_data_.angular_velocity.x,
+		    current_imu_data_.angular_velocity.y,
+		    current_imu_data_.angular_velocity.z);
     // publish
-    pose_pub_ptr_->Publish(t_pose, q_pose, current_imu_data_.time);
+    pose_pub_ptr_->Publish(t_pose, q_pose, linear, angular, current_imu_data_.time);
 
     return true;
 }

@@ -60,6 +60,8 @@ class DataPretreatFlow {
 
         std::string distortion_adjust_method_;
 
+	bool publishable_;
+
         ros::NodeHandle nh_;
 };
 }

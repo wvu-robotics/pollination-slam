@@ -1,20 +1,14 @@
-#ifndef SENSOR_FUSION_SENSOR_DATA_IMU_DATA_HPP_
-#define SENSOR_FUSION_SENSOR_DATA_IMU_DATA_HPP_
+#ifndef SENSOR_FUSION_SENSOR_DATA_ODOMETRY_DATA_HPP_
+#define SENSOR_FUSION_SENSOR_DATA_ODOMETRY_DATA_HPP_
 
 #include <Eigen/Dense>
 #include <cmath>
 #include <deque>
 
 namespace sensor_fusion{
-class IMUData{
+class OdometryData{
     public:
-        struct LinearAcceleration{
-            double x = 0.0;
-            double y = 0.0;
-            double z = 0.0;
-        };
-
-        struct AngularVeclocity{
+        struct Position{
             double x = 0.0;
             double y = 0.0;
             double z = 0.0;
@@ -36,14 +30,27 @@ class IMUData{
                 }
         };
 
+	struct Linear{
+		double x = 0.0;
+		double y = 0.0;
+		double z = 0.0;
+	};
+
+	struct Angular{
+		double x = 0.0;
+		double y = 0.0;
+		double z = 0.0;
+	};
+        
         double time = 0.0;
-        LinearAcceleration linear_acceleration;
-        AngularVeclocity angular_velocity;
+        Position position;
         Orientation orientation;
+	Linear linear;
+	Angular angular;
 
     public:
-        static bool SyncData(std::deque<IMUData>& unsyncedData, std::deque<IMUData>& SyncedData, double sync_time);  
-    };
+        static bool SyncData(std::deque<OdometryData>& UnsyncedData, std::deque<OdometryData>& SyncedData, double sync_time);
+};
 }
 
 #endif

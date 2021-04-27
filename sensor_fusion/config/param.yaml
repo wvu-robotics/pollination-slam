@@ -1,7 +1,7 @@
 subscriber:
   cloud_topic_name: /velodyne_points
   imu_topic_name: /imu/data_updated
-  lo_topic_name: /aft_mapped_to_init_high_frec # lidar odometry
+  lo_topic_name: /aft_mapped_to_init # lidar odometry
   wo_topic_name: /husky_velocity_controller/odom # wheel odometry
 publisher:
   cloud_adjusted_topic_name: /velodyne_points_adjusted

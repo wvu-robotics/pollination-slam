@@ -64,7 +64,8 @@ bool DataPretreatFlow::Run() {
         if (!ValidData())
             continue;
         // TransformData();
-        PublishData();
+	if (publishable_)
+       	    PublishData();
     }
 
     return true;
@@ -76,13 +77,12 @@ bool DataPretreatFlow::ReadData() {
     cloud_sub_ptr_->ParseData(cloud_data_buff_);
     imu_sub_ptr_->ParseData(unsynced_imu_);
     // wo_sub_ptr_->ParseData(unsynced_pose_);
-
     if (cloud_data_buff_.size() < 2)
         return false;
     
+    // printf("difference: %f \n", unsynced_imu_.back().time - cloud_data_buff_.back().time);
     // use timestamp of lidar measurement as reference:
     double cloud_time = cloud_data_buff_.front().time;
-
     // in this way, the update frequence of the lidar measurement should be the slowest
     bool valid_imu = IMUData::SyncData(unsynced_imu_, imu_data_buff_, cloud_time);
     // bool valid_wo = PoseData::SyncData(unsynced_pose_, pose_data_buff_, cloud_time);
@@ -136,7 +136,10 @@ bool DataPretreatFlow::ValidData() {
     //     return false;
     // }
 
-    TransformData();
+    publishable_ = true;
+    if (!TransformData()){
+    	publishable_ = false;
+    };
 
     cloud_data_buff_.pop_front();
     imu_data_buff_.pop_front();
@@ -150,7 +153,9 @@ bool DataPretreatFlow::TransformData() {
     distortion_adjust_ptr_->SetIMUData(unsynced_imu_);
     distortion_adjust_ptr_->SetCloudData(cloud_data_buff_);
     // distortion_adjust_ptr_->SetPoseData(unsynced_pose_);
-    distortion_adjust_ptr_->AdjustCloud(current_cloud_data_, current_cloud_data_);
+    if (!distortion_adjust_ptr_->AdjustCloud(current_cloud_data_, current_cloud_data_)) {
+    	return false;
+    };
 
     return true;
 }

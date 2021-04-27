@@ -17,7 +17,8 @@ class OdometryPublisher{
                         int buff_size);
         OdometryPublisher() = default;
 
-        void Publish(const Eigen::Vector3d& t, const Eigen::Quaterniond& q, double time);
+        void Publish(const Eigen::Vector3d& t, const Eigen::Quaterniond& q, 
+		const Eigen::Vector3d& linear, const Eigen::Vector3d& angular, double time);
 
         bool hasSubscribers();
 
