@@ -15,7 +15,7 @@ class IMUDistortionAdjust: public DistortionAdjustInterface {
 
         bool SetIMUData(std::deque<IMUData>& imu_data_buff) override;
         bool SetPoseData(std::deque<PoseData>& pose_data_buff) override;
-        bool SetScanPeriod(double scan_period) override;
+        bool SetCloudData(std::deque<CloudData>& cloud_data_buff) override;
 
     private:
         void ResetParameters();
@@ -42,6 +42,7 @@ class IMUDistortionAdjust: public DistortionAdjustInterface {
 
         std::deque<IMUData> imu_data_buff_;
         std::deque<PoseData> pose_data_buff_;
+        std::deque<CloudData> cloud_data_buff_;
 };
 }
 

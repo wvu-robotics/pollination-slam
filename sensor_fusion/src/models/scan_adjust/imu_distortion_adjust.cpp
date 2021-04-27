@@ -8,7 +8,12 @@ bool IMUDistortionAdjust::AdjustCloud(CloudData& input_cloud, CloudData& output_
 
     // get information from input cloud
     current_scan_time_start_ = input_cloud.time;
-    current_scan_time_end_ = current_scan_time_start_ + scan_period_;
+    if (cloud_data_buff_.size() < 2) {
+        std::cout<<"waiting for cloud data ... "<<std::endl;
+        return false;
+    }
+    current_scan_time_end_ = cloud_data_buff_.at(1).time;
+    scan_period_ = current_scan_time_end_ - current_scan_time_start_;
 
     origin_cloud_ptr_.reset(new CloudData::CLOUD(*(input_cloud.cloud_ptr)));
     output_cloud_ptr_.reset(new CloudData::CLOUD());
@@ -22,10 +27,7 @@ bool IMUDistortionAdjust::AdjustCloud(CloudData& input_cloud, CloudData& output_
 
     return true;
 }
-bool IMUDistortionAdjust::SetScanPeriod(double scan_period) {
-    scan_period_ = scan_period;
-    return true;
-}
+
 bool IMUDistortionAdjust::SetIMUData(std::deque<IMUData>& imu_data_buff) {
     imu_data_buff_ = imu_data_buff;
     return true;
@@ -33,6 +35,11 @@ bool IMUDistortionAdjust::SetIMUData(std::deque<IMUData>& imu_data_buff) {
 
 bool IMUDistortionAdjust::SetPoseData(std::deque<PoseData>& pose_data_buff) {
     pose_data_buff_ = pose_data_buff;
+    return true;
+}
+
+bool IMUDistortionAdjust::SetCloudData(std::deque<CloudData>& cloud_data_buff) {
+    cloud_data_buff_ = cloud_data_buff;
     return true;
 }
 
@@ -218,8 +225,5 @@ void IMUDistortionAdjust::CorrectLaserScan() {
         output_cloud_ptr_->points.push_back(point);
     }
 }
-
-
-
 
 }

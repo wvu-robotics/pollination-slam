@@ -18,7 +18,7 @@ class DistortionAdjustInterface {
         virtual bool SetIMUData(std::deque<IMUData>& imu_data_buff) = 0;
         virtual bool SetPoseData(std::deque<PoseData>& pose_data_buff) = 0;
 
-        virtual bool SetScanPeriod(double scan_period) = 0;
+        virtual bool SetCloudData(std::deque<CloudData>& cloud_data_buff) = 0;
 
 };
 }

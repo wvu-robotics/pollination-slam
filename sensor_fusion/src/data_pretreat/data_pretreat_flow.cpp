@@ -63,7 +63,7 @@ bool DataPretreatFlow::Run() {
     while(HasData()) {
         if (!ValidData())
             continue;
-        TransformData();
+        // TransformData();
         PublishData();
     }
 
@@ -77,7 +77,7 @@ bool DataPretreatFlow::ReadData() {
     imu_sub_ptr_->ParseData(unsynced_imu_);
     // wo_sub_ptr_->ParseData(unsynced_pose_);
 
-    if (cloud_data_buff_.size() == 0)
+    if (cloud_data_buff_.size() < 2)
         return false;
     
     // use timestamp of lidar measurement as reference:
@@ -136,6 +136,8 @@ bool DataPretreatFlow::ValidData() {
     //     return false;
     // }
 
+    TransformData();
+
     cloud_data_buff_.pop_front();
     imu_data_buff_.pop_front();
     // pose_data_buff_.pop_front();
@@ -146,8 +148,8 @@ bool DataPretreatFlow::ValidData() {
 bool DataPretreatFlow::TransformData() {
     // adjust cloud
     distortion_adjust_ptr_->SetIMUData(unsynced_imu_);
+    distortion_adjust_ptr_->SetCloudData(cloud_data_buff_);
     // distortion_adjust_ptr_->SetPoseData(unsynced_pose_);
-    distortion_adjust_ptr_->SetScanPeriod(0.1);
     distortion_adjust_ptr_->AdjustCloud(current_cloud_data_, current_cloud_data_);
 
     return true;
