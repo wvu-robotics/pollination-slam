@@ -17,6 +17,7 @@ bool IMUDistortionAdjust::AdjustCloud(CloudData& input_cloud, CloudData& output_
 
     CorrectLaserScan();
 
+    output_cloud.time = current_scan_time_start_;
     output_cloud.cloud_ptr.reset(new CloudData::CLOUD(*output_cloud_ptr_));
 
     return true;

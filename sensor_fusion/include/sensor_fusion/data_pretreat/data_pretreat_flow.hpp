@@ -32,7 +32,7 @@ class DataPretreatFlow {
         // subscriber
         std::shared_ptr<CloudSubscriber> cloud_sub_ptr_;
         std::shared_ptr<IMUSubscriber> imu_sub_ptr_;
-        std::shared_ptr<WoSubscriber> wo_sub_ptr_;
+        // std::shared_ptr<WoSubscriber> wo_sub_ptr_;
 
         //publisher
         std::shared_ptr<CloudPublisher> cloud_pub_ptr_;
@@ -41,19 +41,19 @@ class DataPretreatFlow {
 
         std::deque<CloudData> cloud_data_buff_;
         std::deque<IMUData> imu_data_buff_;
-        std::deque<PoseData> pose_data_buff_;
+        // std::deque<PoseData> pose_data_buff_;
 
         CloudData current_cloud_data_;
         IMUData current_imu_data_;
-        PoseData current_pose_data_;
+        // PoseData current_pose_data_;
 
         std::deque<IMUData> unsynced_imu_;
-        std::deque<PoseData> unsynced_pose_;
+        // std::deque<PoseData> unsynced_pose_;
 
         // parameters
         std::string imu_topic_name_;
         std::string cloud_topic_name_;
-        std::string wo_topic_name_;
+        // std::string wo_topic_name_;
 
         std::string cloud_adjusted_topic_name_;
         std::string cloud_frame_id_;
