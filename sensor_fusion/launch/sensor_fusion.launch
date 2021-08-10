@@ -1,5 +1,5 @@
 <launch>
-    <node pkg="tf" type="static_transform_publisher" name="greenhouse_to_map" args="1.7 2.61 0 0 0 0 1 greenhouse map 100" />
+    <node pkg="tf2_ros" type="static_transform_publisher" name="greenhouse_to_map" args="1.7 2.61 0 0 0 0 1 greenhouse map" />
     <rosparam file="$(find sensor_fusion)/config/param.yaml"/>
     <node pkg="sensor_fusion" type="data_pretreat_node" name="data_pretreat_node" output="screen"/>
     <node pkg="sensor_fusion" type="sensor_fusion_node" name="sensor_fusion_node" output="screen"/>
