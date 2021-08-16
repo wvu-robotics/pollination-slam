@@ -35,6 +35,11 @@ void DataPretreatFlow::InitParam() {
         distortion_adjust_method_ = "IMU";
     }
 
+    if(!nh_.getParam("/scan_adjust/do_distortion", do_distortion_)){
+        ROS_ERROR("Failed to get param '/scan_adjust/do_distortion'");
+        do_distortion_ = true;
+    }
+
     if (distortion_adjust_method_ == "IMU") {
         distortion_adjust_ptr_ = std::make_shared<IMUDistortionAdjust>();
     } else {
@@ -137,9 +142,12 @@ bool DataPretreatFlow::ValidData() {
     // }
 
     publishable_ = true;
-    if (!TransformData()){
-    	publishable_ = false;
-    };
+    if (do_distortion_) {   // flag for doing distortion
+        if (!TransformData()){
+            publishable_ = false;
+        }
+    }
+    
 
     cloud_data_buff_.pop_front();
     imu_data_buff_.pop_front();

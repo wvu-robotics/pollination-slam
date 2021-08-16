@@ -3,7 +3,7 @@
 namespace sensor_fusion{
 WoSubscriber::WoSubscriber(ros::NodeHandle& nh, std::string topic_name, size_t buff_size)
     :nh_(nh){
-    subscriber_ = nh_.subscribe(topic_name, buff_size, &WoSubscriber::msg_callback, this);
+    subscriber_ = nh_.subscribe(topic_name, buff_size, &WoSubscriber::msg_callback, this, ros::TransportHints().tcpNoDelay());
 }
 
 void WoSubscriber::msg_callback(const nav_msgs::OdometryConstPtr& wo_msg_ptr){

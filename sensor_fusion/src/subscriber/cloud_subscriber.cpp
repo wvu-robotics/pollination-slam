@@ -9,7 +9,7 @@
 namespace sensor_fusion {
 CloudSubscriber::CloudSubscriber(ros::NodeHandle& nh, std::string topic_name, size_t buff_size)
     :nh_(nh) {
-    subscriber_ = nh_.subscribe(topic_name, buff_size, &CloudSubscriber::msg_callback, this);
+    subscriber_ = nh_.subscribe(topic_name, buff_size, &CloudSubscriber::msg_callback, this, ros::TransportHints().tcpNoDelay());
 }
 
 void CloudSubscriber::msg_callback(const sensor_msgs::PointCloud2::ConstPtr& cloud_msg_ptr) {

@@ -95,6 +95,8 @@ float t_x = 0.3962;
 float t_y = 0.0;
 float t_z = -0.873;
 
+bool use_ros_time_now = false;
+
 // input: from odom
 pcl::PointCloud<PointType>::Ptr laserCloudCornerLast(new pcl::PointCloud<PointType>());
 pcl::PointCloud<PointType>::Ptr laserCloudSurfLast(new pcl::PointCloud<PointType>());
@@ -955,7 +957,12 @@ void process()
 			q.setZ(q_w_body.z());
 			transform.setRotation(q);
 			// br.sendTransform(tf::StampedTransform(transform, odomAftMapped.header.stamp, "/camera_init", "/aft_mapped"));
-			br.sendTransform(tf::StampedTransform(transform, odomAftMapped.header.stamp, "/map", "/base_link"));
+			if(use_ros_time_now) {
+				br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "/map", "/base_link"));
+			} else {
+				br.sendTransform(tf::StampedTransform(transform, odomAftMapped.header.stamp, "/map", "/base_link"));
+			}
+			
 
 			frameCount++;
 		}
@@ -984,6 +991,7 @@ int main(int argc, char **argv)
 	nh.param<float>("t_y", t_y, 0.0);
 	nh.param<float>("t_z", t_z, -0.873);
 	
+	nh.param<bool>("use_ros_time_now", use_ros_time_now, false);
 	// transformation between lidar's frame and center of rover.
 
     q_curr_body.w() = r_w;
@@ -998,13 +1006,13 @@ int main(int argc, char **argv)
 	downSizeFilterCorner.setLeafSize(lineRes, lineRes,lineRes);
 	downSizeFilterSurf.setLeafSize(planeRes, planeRes, planeRes);
 
-	ros::Subscriber subLaserCloudCornerLast = nh.subscribe<sensor_msgs::PointCloud2>("/laser_cloud_corner_last", 100, laserCloudCornerLastHandler);
+	ros::Subscriber subLaserCloudCornerLast = nh.subscribe<sensor_msgs::PointCloud2>("/laser_cloud_corner_last", 100, laserCloudCornerLastHandler, ros::TransportHints().tcpNoDelay());
 
-	ros::Subscriber subLaserCloudSurfLast = nh.subscribe<sensor_msgs::PointCloud2>("/laser_cloud_surf_last", 100, laserCloudSurfLastHandler);
+	ros::Subscriber subLaserCloudSurfLast = nh.subscribe<sensor_msgs::PointCloud2>("/laser_cloud_surf_last", 100, laserCloudSurfLastHandler, ros::TransportHints().tcpNoDelay());
 
-	ros::Subscriber subLaserOdometry = nh.subscribe<nav_msgs::Odometry>("/laser_odom_to_init", 100, laserOdometryHandler);
+	ros::Subscriber subLaserOdometry = nh.subscribe<nav_msgs::Odometry>("/laser_odom_to_init", 100, laserOdometryHandler, ros::TransportHints().tcpNoDelay());
 
-	ros::Subscriber subLaserCloudFullRes = nh.subscribe<sensor_msgs::PointCloud2>("/velodyne_cloud_3", 100, laserCloudFullResHandler);
+	ros::Subscriber subLaserCloudFullRes = nh.subscribe<sensor_msgs::PointCloud2>("/velodyne_cloud_3", 100, laserCloudFullResHandler, ros::TransportHints().tcpNoDelay());
 
 	pubLaserCloudSurround = nh.advertise<sensor_msgs::PointCloud2>("/laser_cloud_surround", 100);
 
