@@ -11,5 +11,5 @@ publisher:
   child_frame_id: base_link
 scan_adjust:
   distortion_adjust_method: IMU
-  do_distortion: false
+  do_distortion_adjust: false
 

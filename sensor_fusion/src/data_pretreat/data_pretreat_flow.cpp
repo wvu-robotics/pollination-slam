@@ -35,7 +35,7 @@ void DataPretreatFlow::InitParam() {
         distortion_adjust_method_ = "IMU";
     }
 
-    if(!nh_.getParam("/scan_adjust/do_distortion", do_distortion_)){
+    if(!nh_.getParam("/scan_adjust/do_distortion", do_distortion_adjust_)){
         ROS_ERROR("Failed to get param '/scan_adjust/do_distortion'");
         do_distortion_ = true;
     }
@@ -142,7 +142,7 @@ bool DataPretreatFlow::ValidData() {
     // }
 
     publishable_ = true;
-    if (do_distortion_) {   // flag for doing distortion
+    if (do_distortion_adjust_) {   // flag for doing distortion
         if (!TransformData()){
             publishable_ = false;
         }

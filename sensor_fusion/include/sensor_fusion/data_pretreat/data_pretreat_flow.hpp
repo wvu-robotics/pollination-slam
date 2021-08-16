@@ -61,7 +61,7 @@ class DataPretreatFlow {
         std::string distortion_adjust_method_;
 
 	    bool publishable_;
-        bool do_distortion_;
+        bool do_distortion_adjust_;
 
         ros::NodeHandle nh_;
 };
