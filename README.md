@@ -20,7 +20,7 @@ sudo apt-get install libeigen3-dev
 sudo apt-get install libsuitesparse-dev
 # - However, if you want to build Ceres as a *shared* library, you must
 #   add the following PPA:
-# TODO: this appears to not be necessary on melodic. There is no "release" for this bugfix"
+# TODO: this appears to not be necessary on bionic. There is no "release" for this bugfix"
 sudo add-apt-repository ppa:bzindovic/suitesparse-bugfix-1319687
 sudo apt-get update
 sudo apt-get install libsuitesparse-dev
